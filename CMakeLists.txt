@@ -24,6 +24,15 @@ add_library(lumaspace_actions STATIC
 target_include_directories(lumaspace_actions PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(lumaspace_actions PUBLIC lumaspace_app_core)
 
+add_library(lumaspace_windows_hotkeys STATIC
+    src/platform/windows/hotkey_service.cpp
+    src/platform/windows/hotkey_service.h
+    src/platform/windows/hotkey_types.cpp
+    src/platform/windows/hotkey_types.h
+)
+target_include_directories(lumaspace_windows_hotkeys PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(lumaspace_windows_hotkeys PUBLIC lumaspace_actions user32)
+
 add_library(lumaspace_app STATIC
     src/app/logging.cpp
     src/app/logging.h
@@ -32,7 +41,7 @@ add_library(lumaspace_app STATIC
     src/app/single_instance.cpp
     src/app/single_instance.h
 )
-target_link_libraries(lumaspace_app PUBLIC lumaspace_actions Qt6::Core)
+target_link_libraries(lumaspace_app PUBLIC lumaspace_windows_hotkeys Qt6::Core)
 target_include_directories(lumaspace_app PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_compile_definitions(lumaspace_app PUBLIC QT_NO_KEYWORDS)
 
@@ -46,6 +55,7 @@ set_target_properties(LumaSpace PROPERTIES
 if(MSVC)
     target_compile_options(lumaspace_app_core PRIVATE /W4 /permissive-)
     target_compile_options(lumaspace_actions PRIVATE /W4 /permissive-)
+    target_compile_options(lumaspace_windows_hotkeys PRIVATE /W4 /permissive-)
     target_compile_options(lumaspace_app PRIVATE /W4 /permissive-)
     target_compile_options(LumaSpace PRIVATE /W4 /permissive-)
 endif()
@@ -81,6 +91,17 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME action_registry COMMAND lumaspace_action_tests)
     set_tests_properties(action_registry PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(lumaspace_hotkey_tests tests/hotkey_test.cpp)
+    target_link_libraries(lumaspace_hotkey_tests PRIVATE lumaspace_windows_hotkeys Qt6::Test)
+    target_compile_definitions(lumaspace_hotkey_tests PRIVATE QT_NO_KEYWORDS NOMINMAX WIN32_LEAN_AND_MEAN)
+    if(MSVC)
+        target_compile_options(lumaspace_hotkey_tests PRIVATE /W4 /permissive-)
+    endif()
+    add_test(NAME windows_hotkeys COMMAND lumaspace_hotkey_tests)
+    set_tests_properties(windows_hotkeys PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()

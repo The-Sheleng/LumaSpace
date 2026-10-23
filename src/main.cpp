@@ -3,6 +3,7 @@
 #include "app/logging.h"
 #include "app/product_info.h"
 #include "app/single_instance.h"
+#include "platform/windows/hotkey_service.h"
 
 #include <QAction>
 #include <QApplication>
@@ -95,12 +96,28 @@ int main(int argc, char* argv[])
     qInfo() << "Starting" << lumaspace::productDisplayName()
             << lumaspace::kVersion.toString() << "Log:" << logging.logFilePath();
 
-    lumaspace::AppModeController modeController;
+    lumaspace::AppModeController modeController([](const lumaspace::ModeTransition& transition) {
+        qInfo() << "Application mode changed from"
+                << lumaspace::appModeName(transition.from).data() << "to"
+                << lumaspace::appModeName(transition.to).data();
+    });
     lumaspace::ActionRegistry actionRegistry;
     if (!lumaspace::registerModeActions(actionRegistry, modeController)) {
         qCritical() << "Unable to register the built-in mode actions.";
         QMessageBox::critical(nullptr, lumaspace::productDisplayName(),
                               QStringLiteral("LumaSpace could not register its built-in actions."));
+        return 1;
+    }
+    const std::vector<lumaspace::HotkeyBinding> hotkeyBindings =
+        lumaspace::defaultModeHotkeys();
+    lumaspace::HotkeyService hotkeyService(
+        actionRegistry, [&modeController] { return modeController.currentMode(); });
+    const lumaspace::HotkeyServiceResult hotkeyResult = hotkeyService.start(hotkeyBindings);
+    if (!hotkeyResult.succeeded()) {
+        const QString message = QString::fromStdString(
+            lumaspace::describeHotkeyServiceFailure(hotkeyResult, hotkeyBindings));
+        qCritical().noquote() << message;
+        QMessageBox::critical(nullptr, lumaspace::productDisplayName(), message);
         return 1;
     }
 
@@ -143,6 +160,7 @@ int main(int argc, char* argv[])
 
     trayIcon.show();
     const int exitCode = application.exec();
+    hotkeyService.stop();
     modeController.shutdown();
     return exitCode;
 }

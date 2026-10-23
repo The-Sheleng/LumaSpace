@@ -62,3 +62,17 @@ Qt log messages are appended to `LumaSpace.log` in Qt's per-user
 `AppLocalDataLocation` and mirrored to standard error when one is attached.
 Missing tray availability is also shown as a blocking error dialog, after which
 the process exits.
+
+## Provisional M1 shortcuts
+
+The following temporary, code-defined global shortcuts use `RegisterHotKey` and
+the Press trigger. They are intended for technical verification until the M8
+settings UI; conflicts cause an actionable startup error and all registrations
+are rolled back.
+
+- Ctrl+Alt+Shift+F9: Disabled
+- Ctrl+Alt+Shift+F10: Overlay (logical mode only until M2)
+- Ctrl+Alt+Shift+F11: Editing (logical mode only until M4)
+
+Toggle and Hold are not supported in this slice. LumaSpace installs no low-level
+keyboard hook, and normal keys remain owned by the foreground application.
