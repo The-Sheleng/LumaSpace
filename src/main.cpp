@@ -4,6 +4,7 @@
 #include "app/product_info.h"
 #include "app/single_instance.h"
 #include "platform/windows/hotkey_service.h"
+#include "platform/windows/dpi_awareness.h"
 #include "platform/windows/overlay_surface.h"
 
 #include <QAction>
@@ -66,12 +67,20 @@ QWidget* createSettingsWindow()
 
 int main(int argc, char* argv[])
 {
+    const lumaspace::DpiAwarenessResult dpiAwareness =
+        lumaspace::enablePerMonitorDpiAwarenessV2();
     QCoreApplication::setOrganizationName(lumaspace::kProductName.toString());
     QCoreApplication::setApplicationName(lumaspace::kProductName.toString());
     QCoreApplication::setApplicationVersion(lumaspace::kVersion.toString());
     qSetMessagePattern(QStringLiteral("[%{time yyyy-MM-dd hh:mm:ss.zzz}] [%{type}] %{message}"));
 
     QApplication application(argc, argv);
+    if (dpiAwareness == lumaspace::DpiAwarenessResult::Failed) {
+        qCritical() << "Unable to enable Per-Monitor DPI Awareness V2.";
+        QMessageBox::critical(nullptr, lumaspace::productDisplayName(),
+                              QStringLiteral("LumaSpace could not enable per-monitor DPI awareness."));
+        return 1;
+    }
     application.setQuitOnLastWindowClosed(false);
     application.setWindowIcon(lumaspace::createTrayIcon());
 

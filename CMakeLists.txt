@@ -9,6 +9,12 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Test)
 
+add_library(lumaspace_viewport STATIC
+    src/viewport/coordinate_space.cpp
+    src/viewport/coordinate_space.h
+)
+target_include_directories(lumaspace_viewport PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
 add_library(lumaspace_app_core STATIC
     src/app/app_mode.cpp
     src/app/app_mode.h
@@ -27,6 +33,8 @@ target_include_directories(lumaspace_actions PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}
 target_link_libraries(lumaspace_actions PUBLIC lumaspace_app_core)
 
 add_library(lumaspace_windows_hotkeys STATIC
+    src/platform/windows/dpi_awareness.cpp
+    src/platform/windows/dpi_awareness.h
     src/platform/windows/hotkey_service.cpp
     src/platform/windows/hotkey_service.h
     src/platform/windows/hotkey_types.cpp
@@ -57,6 +65,7 @@ set_target_properties(LumaSpace PROPERTIES
 )
 
 if(MSVC)
+    target_compile_options(lumaspace_viewport PRIVATE /W4 /permissive-)
     target_compile_options(lumaspace_app_core PRIVATE /W4 /permissive-)
     target_compile_options(lumaspace_actions PRIVATE /W4 /permissive-)
     target_compile_options(lumaspace_windows_hotkeys PRIVATE /W4 /permissive-)
@@ -139,6 +148,17 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME win32_overlay_surface COMMAND lumaspace_overlay_surface_tests)
     set_tests_properties(win32_overlay_surface PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(lumaspace_coordinate_tests tests/coordinate_space_test.cpp)
+    target_link_libraries(lumaspace_coordinate_tests PRIVATE lumaspace_viewport Qt6::Test)
+    target_compile_definitions(lumaspace_coordinate_tests PRIVATE QT_NO_KEYWORDS)
+    if(MSVC)
+        target_compile_options(lumaspace_coordinate_tests PRIVATE /W4 /permissive-)
+    endif()
+    add_test(NAME coordinate_spaces COMMAND lumaspace_coordinate_tests)
+    set_tests_properties(coordinate_spaces PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()

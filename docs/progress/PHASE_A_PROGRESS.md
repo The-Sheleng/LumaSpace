@@ -13,6 +13,7 @@ remote CI acceptance remain separate where required.
 | M1.5 M1 integration, tests & acceptance gate | IMPLEMENTED—VERIFYING | `ae70423` | Fresh Debug/Release builds; 6/6 CTest tests passed; real tray Settings/close/Exit/relaunch matrix passed; isolated Notepad retained focus and exact input across F9/F10/F11; zero residual processes. |
 | M2.1 Win32 transparent HWND overlay proof | IMPLEMENTED—VERIFYING | `871e801` | Fresh Debug/Release builds; 7/7 CTest tests passed; windowed and borderless probes confirmed exact input, click-through, focus preservation, required native styles, visible marker pixels, Alt+Tab exclusion, and destruction on Disabled. |
 | M2.2 Per-monitor surfaces & topology changes | IMPLEMENTED—VERIFYING | `2053602` | No unresolved code-level or automated-test failures: fresh Debug/Release builds and 7/7 CTest tests passed. Synthetic side-by-side, negative-origin, stacked, primary-swap, disconnect, zero-display, refresh failure and idempotency cases passed. Live single-monitor bounds, display-change refresh, teardown and diagnostics passed. Physical multi-monitor verification is deferred to A.1 and is not represented by simulation. |
+| M2.3 DPI & coordinate conversion foundations | IMPLEMENTED—VERIFYING | This task commit | No unresolved code-level or automated-test failures: fresh Debug/Release builds and 8/8 CTest tests passed. Live single-display evidence confirms Per-Monitor V2, 144 DPI (150%), marker alignment and clean teardown. Mandatory 100% plus mixed-DPI physical seam/focus verification is BLOCKED by the available single 150% display; unlike M2.2, this gate has not been authorized for deferral. |
 
 ## Deferred M2.2 physical hardware gate — required at A.1
 
@@ -29,3 +30,15 @@ real two-monitor Windows system before Phase A can be marked complete:
 
 Synthetic displays and unit tests are implementation evidence only; they are not
 equivalent to these physical multi-monitor observations.
+
+## M2.3 physical DPI gate — current blocker
+
+M2.3 cannot advance to M2.4 until these mandatory observations are available:
+
+1. Verify marker and pointer alignment on a real display configured at 100% scale.
+2. On two physical displays with different scale factors, place one left of the primary and verify alignment across the seam without offset or drift.
+3. Move the foreground interaction probe between the displays and confirm Overlay preserves keyboard focus and pointer pass-through at both scale factors.
+
+The current machine has one 1920×1080 display at 144 DPI (150%). Numeric tests
+for 100/125/150/200% and synthetic negative origins are not substitutes for this
+mandatory physical observation.
