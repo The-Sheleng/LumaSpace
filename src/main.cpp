@@ -1,3 +1,4 @@
+#include "app/app_mode.h"
 #include "app/logging.h"
 #include "app/product_info.h"
 #include "app/single_instance.h"
@@ -93,6 +94,8 @@ int main(int argc, char* argv[])
     qInfo() << "Starting" << lumaspace::productDisplayName()
             << lumaspace::kVersion.toString() << "Log:" << logging.logFilePath();
 
+    lumaspace::AppModeController modeController;
+
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         const QString message = QStringLiteral(
             "The Windows notification area is unavailable. LumaSpace cannot start.");
@@ -131,5 +134,7 @@ int main(int argc, char* argv[])
     });
 
     trayIcon.show();
-    return application.exec();
+    const int exitCode = application.exec();
+    modeController.shutdown();
+    return exitCode;
 }

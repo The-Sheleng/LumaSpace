@@ -9,6 +9,12 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Test)
 
+add_library(lumaspace_app_core STATIC
+    src/app/app_mode.cpp
+    src/app/app_mode.h
+)
+target_include_directories(lumaspace_app_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
 add_library(lumaspace_app STATIC
     src/app/logging.cpp
     src/app/logging.h
@@ -17,7 +23,7 @@ add_library(lumaspace_app STATIC
     src/app/single_instance.cpp
     src/app/single_instance.h
 )
-target_link_libraries(lumaspace_app PUBLIC Qt6::Core)
+target_link_libraries(lumaspace_app PUBLIC lumaspace_app_core Qt6::Core)
 target_include_directories(lumaspace_app PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_compile_definitions(lumaspace_app PUBLIC QT_NO_KEYWORDS)
 
@@ -29,6 +35,7 @@ set_target_properties(LumaSpace PROPERTIES
 )
 
 if(MSVC)
+    target_compile_options(lumaspace_app_core PRIVATE /W4 /permissive-)
     target_compile_options(lumaspace_app PRIVATE /W4 /permissive-)
     target_compile_options(LumaSpace PRIVATE /W4 /permissive-)
 endif()
@@ -42,6 +49,17 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME product_info_smoke COMMAND lumaspace_smoke_tests)
     set_tests_properties(product_info_smoke PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(lumaspace_app_mode_tests tests/app_mode_test.cpp)
+    target_link_libraries(lumaspace_app_mode_tests PRIVATE lumaspace_app_core Qt6::Test)
+    target_compile_definitions(lumaspace_app_mode_tests PRIVATE QT_NO_KEYWORDS)
+    if(MSVC)
+        target_compile_options(lumaspace_app_mode_tests PRIVATE /W4 /permissive-)
+    endif()
+    add_test(NAME app_mode_state_machine COMMAND lumaspace_app_mode_tests)
+    set_tests_properties(app_mode_state_machine PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()
