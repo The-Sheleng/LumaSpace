@@ -71,14 +71,21 @@ settings UI; conflicts cause an actionable startup error and all registrations
 are rolled back.
 
 - Ctrl+Alt+Shift+F9: Disabled
-- Ctrl+Alt+Shift+F10: request Overlay
+- Ctrl+Alt+Shift+F10: show the M2 diagnostic Overlay on the primary monitor
 - Ctrl+Alt+Shift+F11: request Editing
 
 Toggle and Hold are not supported in this slice. LumaSpace installs no low-level
 keyboard hook, and normal keys remain owned by the foreground application.
-Until M2 supplies native overlay resources and M4 supplies editing capture/input
-resources, the production adapter rejects the F10 and F11 requests as
-`NotImplemented` and records the reason in `LumaSpace.log`; it does not claim a
-logical mode that is not visibly active. The transaction contract and future
-adapter responsibilities are documented in
+M2.1 supplies a native primary-monitor proof surface, so F10 displays a small
+magenta/white diagnostic marker over an otherwise transparent, click-through
+window. F9 destroys it. Editing remains unavailable: until M4 supplies editing
+capture/input resources, F11 is rejected as `NotImplemented` and recorded in
+`LumaSpace.log`. The transaction contract and adapter responsibilities are
+documented in
 [`docs/mode-transition-coordination.md`](docs/mode-transition-coordination.md).
+
+The M2.1 surface is intentionally limited to the primary monitor. Exclusive
+fullscreen applications may render above or bypass composed desktop overlays,
+and window-only screen sharing commonly omits independent overlay windows. Both
+cases require explicit validation by the eventual deployment; display capture
+and borderless/windowed desktop applications are the supported proof scenarios.

@@ -4,6 +4,7 @@
 #include "app/product_info.h"
 #include "app/single_instance.h"
 #include "platform/windows/hotkey_service.h"
+#include "platform/windows/overlay_surface.h"
 
 #include <QAction>
 #include <QApplication>
@@ -101,7 +102,8 @@ int main(int argc, char* argv[])
                 << lumaspace::appModeName(transition.from).data() << "to"
                 << lumaspace::appModeName(transition.to).data();
     });
-    lumaspace::UnsupportedModePlatformAdapter modePlatformAdapter;
+    lumaspace::Win32OverlaySurfaceFactory overlaySurfaceFactory;
+    lumaspace::Win32ModePlatformAdapter modePlatformAdapter(overlaySurfaceFactory);
     lumaspace::ModeTransitionCoordinator modeCoordinator(
         modeController, modePlatformAdapter,
         [](const lumaspace::CoordinatedTransitionResult& result) {

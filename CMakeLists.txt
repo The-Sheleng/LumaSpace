@@ -31,9 +31,11 @@ add_library(lumaspace_windows_hotkeys STATIC
     src/platform/windows/hotkey_service.h
     src/platform/windows/hotkey_types.cpp
     src/platform/windows/hotkey_types.h
+    src/platform/windows/overlay_surface.cpp
+    src/platform/windows/overlay_surface.h
 )
 target_include_directories(lumaspace_windows_hotkeys PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_link_libraries(lumaspace_windows_hotkeys PUBLIC lumaspace_actions user32)
+target_link_libraries(lumaspace_windows_hotkeys PUBLIC lumaspace_actions user32 gdi32)
 
 add_library(lumaspace_app STATIC
     src/app/logging.cpp
@@ -126,6 +128,17 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME m1_action_transition_integration COMMAND lumaspace_m1_integration_tests)
     set_tests_properties(m1_action_transition_integration PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(lumaspace_overlay_surface_tests tests/overlay_surface_test.cpp)
+    target_link_libraries(lumaspace_overlay_surface_tests PRIVATE lumaspace_windows_hotkeys Qt6::Test)
+    target_compile_definitions(lumaspace_overlay_surface_tests PRIVATE QT_NO_KEYWORDS)
+    if(MSVC)
+        target_compile_options(lumaspace_overlay_surface_tests PRIVATE /W4 /permissive-)
+    endif()
+    add_test(NAME win32_overlay_surface COMMAND lumaspace_overlay_surface_tests)
+    set_tests_properties(win32_overlay_surface PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()
