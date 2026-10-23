@@ -1,0 +1,27 @@
+name: Windows
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        configuration: [debug, release]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          cache: true
+      - name: Configure
+        run: cmake --preset windows-${{ matrix.configuration }}
+      - name: Build
+        run: cmake --build --preset windows-${{ matrix.configuration }}
+      - name: Test
+        run: ctest --preset windows-${{ matrix.configuration }}
