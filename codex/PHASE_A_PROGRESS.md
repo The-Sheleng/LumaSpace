@@ -7,3 +7,4 @@ remote CI acceptance remain separate where required.
 | Task | State | Commit | Evidence |
 |---|---|---|---|
 | M1.1 Pure application mode state machine | IMPLEMENTED—VERIFYING | This task commit | Clean Debug/Release builds; 2/2 CTest tests passed in each; tray Exit confirmed with no visible overlay or residual process. |
+| M1.2 Typed Action Registry | IMPLEMENTED—VERIFYING | This task commit | Clean Debug/Release builds; 3/3 CTest tests passed in each; tray and Settings lifecycle confirmed. |

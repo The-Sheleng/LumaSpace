@@ -1,3 +1,4 @@
+#include "actions/mode_actions.h"
 #include "app/app_mode.h"
 #include "app/logging.h"
 #include "app/product_info.h"
@@ -95,6 +96,13 @@ int main(int argc, char* argv[])
             << lumaspace::kVersion.toString() << "Log:" << logging.logFilePath();
 
     lumaspace::AppModeController modeController;
+    lumaspace::ActionRegistry actionRegistry;
+    if (!lumaspace::registerModeActions(actionRegistry, modeController)) {
+        qCritical() << "Unable to register the built-in mode actions.";
+        QMessageBox::critical(nullptr, lumaspace::productDisplayName(),
+                              QStringLiteral("LumaSpace could not register its built-in actions."));
+        return 1;
+    }
 
     if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         const QString message = QStringLiteral(
