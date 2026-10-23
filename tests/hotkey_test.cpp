@@ -82,6 +82,39 @@ private Q_SLOTS:
                                VK_F24));
         QVERIFY(UnregisterHotKey(nullptr, 91));
     }
+
+    void registrationConflictIsDiagnosableAndRollsBack()
+    {
+        lumaspace::AppModeController controller;
+        lumaspace::ActionRegistry registry;
+        QVERIFY(lumaspace::registerModeActions(registry, controller));
+        lumaspace::HotkeyService owner(
+            registry, [&controller] { return controller.currentMode(); });
+        lumaspace::HotkeyService contender(
+            registry, [&controller] { return controller.currentMode(); });
+        constexpr lumaspace::HotkeyModifier modifiers =
+            lumaspace::HotkeyModifier::Control | lumaspace::HotkeyModifier::Alt |
+            lumaspace::HotkeyModifier::Shift;
+        const std::vector bindings{
+            lumaspace::HotkeyBinding{92, {modifiers, VK_F23},
+                                     lumaspace::kModeOverlayAction,
+                                     lumaspace::TriggerMode::Press,
+                                     lumaspace::ActivationPolicy::Always},
+        };
+
+        QVERIFY(owner.start(bindings).succeeded());
+        const auto conflict = contender.start(bindings);
+        QCOMPARE(conflict.status, lumaspace::HotkeyServiceStatus::RegistrationFailed);
+        QVERIFY(!contender.isRunning());
+        const std::string diagnostic =
+            lumaspace::describeHotkeyServiceFailure(conflict, bindings);
+        QVERIFY(diagnostic.find("Ctrl+Alt+Shift+F23") != std::string::npos);
+        QVERIFY(diagnostic.find("already in use") != std::string::npos);
+
+        owner.stop();
+        QVERIFY(contender.start(bindings).succeeded());
+        contender.stop();
+    }
 };
 
 QTEST_APPLESS_MAIN(HotkeyTest)

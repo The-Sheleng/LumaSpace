@@ -71,8 +71,14 @@ settings UI; conflicts cause an actionable startup error and all registrations
 are rolled back.
 
 - Ctrl+Alt+Shift+F9: Disabled
-- Ctrl+Alt+Shift+F10: Overlay (logical mode only until M2)
-- Ctrl+Alt+Shift+F11: Editing (logical mode only until M4)
+- Ctrl+Alt+Shift+F10: request Overlay
+- Ctrl+Alt+Shift+F11: request Editing
 
 Toggle and Hold are not supported in this slice. LumaSpace installs no low-level
 keyboard hook, and normal keys remain owned by the foreground application.
+Until M2 supplies native overlay resources and M4 supplies editing capture/input
+resources, the production adapter rejects the F10 and F11 requests as
+`NotImplemented` and records the reason in `LumaSpace.log`; it does not claim a
+logical mode that is not visibly active. The transaction contract and future
+adapter responsibilities are documented in
+[`docs/mode-transition-coordination.md`](docs/mode-transition-coordination.md).

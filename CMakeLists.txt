@@ -117,4 +117,15 @@ if(BUILD_TESTING)
     set_tests_properties(mode_transition_coordinator PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
+
+    add_executable(lumaspace_m1_integration_tests tests/m1_integration_test.cpp)
+    target_link_libraries(lumaspace_m1_integration_tests PRIVATE lumaspace_actions Qt6::Test)
+    target_compile_definitions(lumaspace_m1_integration_tests PRIVATE QT_NO_KEYWORDS)
+    if(MSVC)
+        target_compile_options(lumaspace_m1_integration_tests PRIVATE /W4 /permissive-)
+    endif()
+    add_test(NAME m1_action_transition_integration COMMAND lumaspace_m1_integration_tests)
+    set_tests_properties(m1_action_transition_integration PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
 endif()
