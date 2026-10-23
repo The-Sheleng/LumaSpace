@@ -111,6 +111,19 @@ int main(int argc, char* argv[])
                        << lumaspace::appModeName(result.requested).data()
                        << "reason code:" << static_cast<int>(result.reason);
         });
+    modePlatformAdapter.setOverlayFailureHandler([&modeCoordinator] {
+        qCritical() << "Display topology refresh failed; leaving Overlay mode.";
+        static_cast<void>(modeCoordinator.requestTransition(
+            lumaspace::AppMode::Disabled, lumaspace::TransitionSource::Lifecycle));
+    });
+    modePlatformAdapter.setTopologyObserver([](const lumaspace::DisplayTopology& topology) {
+        for (const lumaspace::MonitorDescriptor& monitor : topology) {
+            qInfo() << "Overlay monitor" << QString::fromStdWString(monitor.id)
+                    << "bounds" << monitor.bounds.left << monitor.bounds.top
+                    << monitor.bounds.right << monitor.bounds.bottom
+                    << "primary" << monitor.primary;
+        }
+    });
     lumaspace::ActionRegistry actionRegistry;
     if (!lumaspace::registerModeActions(actionRegistry, modeCoordinator)) {
         qCritical() << "Unable to register the built-in mode actions.";
