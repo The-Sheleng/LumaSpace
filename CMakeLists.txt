@@ -12,6 +12,8 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Test)
 add_library(lumaspace_app_core STATIC
     src/app/app_mode.cpp
     src/app/app_mode.h
+    src/app/mode_transition_coordinator.cpp
+    src/app/mode_transition_coordinator.h
 )
 target_include_directories(lumaspace_app_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
@@ -102,6 +104,17 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME windows_hotkeys COMMAND lumaspace_hotkey_tests)
     set_tests_properties(windows_hotkeys PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+    )
+
+    add_executable(lumaspace_coordinator_tests tests/mode_transition_coordinator_test.cpp)
+    target_link_libraries(lumaspace_coordinator_tests PRIVATE lumaspace_app_core Qt6::Test)
+    target_compile_definitions(lumaspace_coordinator_tests PRIVATE QT_NO_KEYWORDS)
+    if(MSVC)
+        target_compile_options(lumaspace_coordinator_tests PRIVATE /W4 /permissive-)
+    endif()
+    add_test(NAME mode_transition_coordinator COMMAND lumaspace_coordinator_tests)
+    set_tests_properties(mode_transition_coordinator PROPERTIES
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
     )
 endif()

@@ -101,8 +101,16 @@ int main(int argc, char* argv[])
                 << lumaspace::appModeName(transition.from).data() << "to"
                 << lumaspace::appModeName(transition.to).data();
     });
+    lumaspace::UnsupportedModePlatformAdapter modePlatformAdapter;
+    lumaspace::ModeTransitionCoordinator modeCoordinator(
+        modeController, modePlatformAdapter,
+        [](const lumaspace::CoordinatedTransitionResult& result) {
+            qWarning() << "Application mode request rejected. Requested:"
+                       << lumaspace::appModeName(result.requested).data()
+                       << "reason code:" << static_cast<int>(result.reason);
+        });
     lumaspace::ActionRegistry actionRegistry;
-    if (!lumaspace::registerModeActions(actionRegistry, modeController)) {
+    if (!lumaspace::registerModeActions(actionRegistry, modeCoordinator)) {
         qCritical() << "Unable to register the built-in mode actions.";
         QMessageBox::critical(nullptr, lumaspace::productDisplayName(),
                               QStringLiteral("LumaSpace could not register its built-in actions."));
@@ -111,7 +119,7 @@ int main(int argc, char* argv[])
     const std::vector<lumaspace::HotkeyBinding> hotkeyBindings =
         lumaspace::defaultModeHotkeys();
     lumaspace::HotkeyService hotkeyService(
-        actionRegistry, [&modeController] { return modeController.currentMode(); });
+        actionRegistry, [&modeCoordinator] { return modeCoordinator.currentMode(); });
     const lumaspace::HotkeyServiceResult hotkeyResult = hotkeyService.start(hotkeyBindings);
     if (!hotkeyResult.succeeded()) {
         const QString message = QString::fromStdString(
@@ -161,6 +169,6 @@ int main(int argc, char* argv[])
     trayIcon.show();
     const int exitCode = application.exec();
     hotkeyService.stop();
-    modeController.shutdown();
+    modeCoordinator.shutdown();
     return exitCode;
 }
